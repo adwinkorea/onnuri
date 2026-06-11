@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기체 선택 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › 기체선택</div>
+    <h1>🚁 기체 선택</h1>
+    <p>보유하신 드론을 선택하면 기체에 맞는 설명서·점검·정비·교육 정보를 안내해 드립니다.</p>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <div class="models" id="modelGrid"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome("models");
+  bootContent(function(){
+    document.getElementById("modelGrid").innerHTML = DATA.models.map(m=>`
+      <a class="model" href="model.html?id=${m.id}">
+        <div class="thumb">${m.image?`<img src="${m.image}" alt="${m.name}" onerror="this.parentNode.innerHTML='${m.icon}'">`:m.icon}</div>
+        <h3>${m.name}</h3>
+        <p>${m.desc}</p>
+        <span class="tag">${m.tag}</span>
+      </a>`).join("");
+  });
+</script>
+</body>
+</html>

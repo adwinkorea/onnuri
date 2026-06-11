@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>비행전 점검 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › 비행전 점검</div>
+    <h1>✅ 비행전 점검</h1>
+    <p>비행 전 아래 항목을 순서대로 확인하세요. 체크하면 진행 상황이 표시됩니다.</p>
+  </div>
+</div>
+<section class="block">
+  <div class="wrap" style="max-width:760px">
+    <div class="list-card" id="checkList"></div>
+    <div style="margin-top:20px;text-align:center;color:var(--muted)" id="progress"></div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome();
+  bootContent(function(){
+
+  const list=document.getElementById("checkList"), prog=document.getElementById("progress");
+  let done=0; const total=DATA.checkItems.length;
+  list.innerHTML = DATA.checkItems.map((it,i)=>`
+    <div class="list-row" data-i="${i}">
+      <div class="num">${i+1}</div>
+      <div class="body"><h4>${it}</h4></div>
+      <div class="arrow" data-check>○</div>
+    </div>`).join("");
+  function upd(){prog.textContent = `${done} / ${total} 항목 확인 완료`;}
+  upd();
+  list.querySelectorAll(".list-row").forEach(row=>{
+    row.addEventListener("click",()=>{
+      const a=row.querySelector("[data-check]");
+      const on=a.textContent==="✓";
+      a.textContent=on?"○":"✓";
+      a.style.color=on?"":"#22a06b";
+      row.style.background=on?"":"#eafaf1";
+      done+=on?-1:1; upd();
+    });
+  });
+
+  });
+</script>
+</body>
+</html>

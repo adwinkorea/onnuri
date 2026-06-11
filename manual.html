@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>사용설명서 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › 사용설명서</div>
+    <h1>📘 사용설명서</h1>
+    <p>기체별 사용설명서를 PDF로 내려받을 수 있습니다.</p>
+  </div>
+</div>
+<section class="block">
+  <div class="wrap">
+    <div class="manual-grid" id="manualGrid"></div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome();
+  bootContent(function(){
+
+  document.getElementById("manualGrid").innerHTML = DATA.manuals.map(m=>`
+    <div class="manual">
+      <div class="file-ic">PDF</div>
+      <div>
+        <h4>${m.model}</h4>
+        <p>${m.desc} · ${m.version}</p>
+        <div class="dl">
+          ${m.file
+            ? `<a class="btn btn-blue" href="${m.file}" download>PDF 다운로드</a>`
+            : `<button class="btn btn-blue" disabled style="opacity:.5;cursor:not-allowed">준비중</button>`}
+        </div>
+      </div>
+    </div>`).join("");
+
+  });
+</script>
+</body>
+</html>

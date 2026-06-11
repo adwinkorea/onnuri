@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 · 온누리 드론 지식센터</title>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .admin-wrap{max-width:980px;margin:0 auto;padding:30px 22px 80px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:24px 0 28px;border-bottom:1px solid var(--line);padding-bottom:14px}
+  .tab{padding:10px 18px;border-radius:10px;font-weight:700;cursor:pointer;background:#fff;border:1.5px solid var(--line);font-size:14px}
+  .tab.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+  .panel{display:none}.panel.on{display:block}
+  .ed-card{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+  .ed-card .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  .ed-card label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
+  .ed-card input,.ed-card textarea{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px}
+  .ed-card input:focus,.ed-card textarea:focus{outline:none;border-color:var(--blue)}
+  .ed-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  .ed-head h4{font-size:16px}
+  .del{background:#ffe3e3;color:#e03131;border:0;border-radius:8px;padding:7px 12px;font-weight:700;cursor:pointer;font-size:13px}
+  .addbtn{background:var(--blue-soft);color:var(--blue-dark);border:1.5px dashed var(--blue);border-radius:12px;padding:14px;width:100%;font-weight:700;cursor:pointer;font-size:15px;font-family:inherit}
+  .savebar{position:sticky;bottom:0;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:16px 22px;display:flex;gap:12px;justify-content:flex-end;margin-top:20px}
+  .note{background:#fff7e6;border:1px solid #ffe0a3;border-radius:12px;padding:14px 18px;font-size:14px;color:#8a6d3b;margin-bottom:20px}
+  .gate{max-width:380px;margin:80px auto;background:#fff;border-radius:18px;box-shadow:var(--shadow);padding:36px;text-align:center}
+  .gate input{width:100%;padding:13px;border:1.5px solid var(--line);border-radius:12px;margin:18px 0;font-size:15px;font-family:inherit}
+  .full{grid-column:1/-1}
+  /* A/S 접수 관리 */
+  .sub-badge{display:inline-block;margin-left:8px;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700;color:#fff;vertical-align:middle}
+  .sub-actions{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .sub-actions label{font-size:13px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .sub-actions select{padding:8px 10px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px}
+  .sub-actions .sub-memo{flex:1;min-width:160px;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px}
+  .sub-actions .sub-memo:focus,.sub-actions select:focus{outline:none;border-color:var(--blue)}
+  .sub-actions .sub-save{background:var(--blue);color:#fff;border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:14px}
+  .sub-actions .sub-save:hover{background:var(--blue-dark)}
+  .sub-actions .sub-del{background:#ffe3e3;color:#e03131;border:0;border-radius:9px;padding:9px 14px;font-weight:700;cursor:pointer;font-size:14px}
+  .sub-actions .sub-del:hover{background:#ffd0d0}
+  /* 댓글식 메모 */
+  .memo-box{margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)}
+  .memo-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+  .memo-empty{font-size:13px;color:#aab}
+  .memo-item{display:flex;align-items:flex-start;gap:10px;background:#f5f8fc;border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .memo-item .memo-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .memo-item .memo-text{font-size:14px;line-height:1.5;word-break:break-word}
+  .memo-item .memo-at{font-size:11px;color:var(--muted)}
+  .memo-item .memo-del{flex:none;width:24px;height:24px;border:0;border-radius:6px;background:#fff;color:#e03131;cursor:pointer;font-size:12px;font-weight:700}
+  .memo-item .memo-del:hover{background:#ffe3e3}
+  .memo-add{display:flex;gap:8px}
+  .memo-add .memo-input{flex:1;padding:9px 12px;border:1.5px solid var(--line);border-radius:9px;font-family:inherit;font-size:14px}
+  .memo-add .memo-input:focus{outline:none;border-color:var(--blue)}
+  .memo-add .memo-send{flex:none;background:var(--blue-soft);color:var(--blue-dark);border:0;border-radius:9px;padding:9px 16px;font-weight:700;cursor:pointer;font-size:14px}
+  .memo-add .memo-send:hover{background:#d9e8ff}
+</style>
+</head>
+<body>
+<div id="site-header"></div>
+
+<!-- 로그인 게이트 -->
+<div id="gate" class="gate">
+  <h2 style="font-size:22px">🔐 관리자 로그인</h2>
+  <p style="color:var(--muted);font-size:14px;margin-top:8px">콘텐츠를 수정하려면 비밀번호/토큰을 입력하세요.</p>
+  <input id="pw" type="password" placeholder="비밀번호 또는 관리자 토큰" onkeydown="if(event.key==='Enter')login()">
+  <button class="btn btn-blue" style="width:100%;justify-content:center" onclick="login()">로그인</button>
+  <p style="color:#b0b9c5;font-size:12px;margin-top:14px">서버 연동 시: 서버에 설정한 ADMIN_TOKEN 입력<br>로컬 데모 시: onnuri</p>
+</div>
+
+<!-- 편집 화면 -->
+<div id="admin" class="admin-wrap" style="display:none">
+  <h1 style="font-size:28px;font-weight:900">콘텐츠 관리</h1>
+  <div class="note">
+    여기서 수정한 내용은 이 브라우저에 저장되어 모든 페이지에 즉시 반영됩니다.
+    실제 서버에 영구 저장하려면 추후 백엔드 연동이 필요합니다. (지금은 데모/원장용 저장)
+  </div>
+
+  <div class="tabs">
+    <div class="tab on" data-t="site">사이트 정보</div>
+    <div class="tab" data-t="models">기체</div>
+    <div class="tab" data-t="categories">카테고리</div>
+    <div class="tab" data-t="manuals">사용설명서</div>
+    <div class="tab" data-t="checkItems">비행전 점검</div>
+    <div class="tab" data-t="symptoms">고장진단 증상</div>
+    <div class="tab" data-t="educations">교육영상</div>
+    <div class="tab" data-t="submissions">📥 A/S 접수내역</div>
+  </div>
+
+  <div id="panels"></div>
+  <div class="panel" id="panel-submissions" style="margin-top:4px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h3 style="font-size:18px">A/S 접수내역</h3>
+      <button class="btn" style="background:var(--blue-soft);color:var(--blue-dark)" onclick="loadSubmissions()">🔄 새로고침</button>
+    </div>
+    <div id="subList"></div>
+  </div>
+
+  <div class="savebar">
+    <button class="btn" style="background:#fff;border:1.5px solid var(--line);color:var(--muted)" onclick="doReset()">기본값으로 초기화</button>
+    <button class="btn btn-blue" onclick="doSave()">💾 변경사항 저장</button>
+  </div>
+</div>
+
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome();
+
+  /* ====== 관리자 인증 ======
+     - 서버 연동 시: 입력한 값이 서버 ADMIN_TOKEN 이어야 저장/목록 권한이 생깁니다.
+     - 서버 미연동(로컬) 시: 아래 LOCAL_PW 로 화면 진입만 합니다(로컬 저장). */
+  const LOCAL_PW = "onnuri";
+  let D = JSON.parse(JSON.stringify(DATA)); // 작업용 사본 (서버 로드 후 갱신)
+
+  async function login(){
+    const v = document.getElementById("pw").value;
+    if(!v){ alert("비밀번호/토큰을 입력하세요."); return; }
+    // 토큰 보관 (서버 저장 시 헤더로 전송됨)
+    setAdminToken(v);
+    sessionStorage.setItem("onnuri_admin","1");
+    // 로컬 전용 비번도 허용
+    await showAdmin();
+  }
+  if(sessionStorage.getItem("onnuri_admin")==="1") showAdmin();
+
+  async function showAdmin(){
+    document.getElementById("gate").style.display="none";
+    document.getElementById("admin").style.display="block";
+    // 서버에 저장된 최신 콘텐츠가 있으면 가져와 편집 기준으로 사용
+    if(typeof fetchContent === "function"){
+      try{ const fresh = await fetchContent(); D = JSON.parse(JSON.stringify(fresh)); }catch(e){}
+    }
+    renderPanels();
+  }
+
+  /* ====== 탭 ====== */
+  document.querySelectorAll(".tab").forEach(t=>{
+    t.addEventListener("click",()=>{
+      document.querySelectorAll(".tab").forEach(x=>x.classList.remove("on"));
+      document.querySelectorAll(".panel").forEach(x=>x.classList.remove("on"));
+      t.classList.add("on");
+      const p = document.getElementById("panel-"+t.dataset.t);
+      if(p) p.classList.add("on");
+      if(t.dataset.t === "submissions") loadSubmissions();
+    });
+  });
+
+  function field(label,val,onInput,full){
+    const id="f"+Math.random().toString(36).slice(2,8);
+    setTimeout(()=>{const el=document.getElementById(id);if(el)el.addEventListener("input",e=>onInput(e.target.value));},0);
+    return `<div class="${full?'full':''}"><label>${label}</label><input id="${id}" value="${(val||'').toString().replace(/"/g,'&quot;')}"></div>`;
+  }
+
+  function renderPanels(){
+    const root=document.getElementById("panels");
+    root.innerHTML="";
+
+    /* --- 사이트 정보 --- */
+    const s=D.site;
+    root.insertAdjacentHTML("beforeend",`
+      <div class="panel on" id="panel-site">
+      <div class="ed-card"><div class="ed-head"><h4>기본 정보</h4></div><div class="grid">
+        ${field("회사명",s.company,v=>s.company=v)}
+        ${field("서비스명",s.serviceName,v=>s.serviceName=v)}
+        ${field("고객센터 전화",s.phone,v=>s.phone=v)}
+        ${field("운영 시간",s.hours,v=>s.hours=v)}
+        ${field("휴무",s.holiday,v=>s.holiday=v)}
+        ${field("메인 이미지 (예: images/hero.jpg)",s.heroImage,v=>s.heroImage=v)}
+        ${field("메인 타이틀",s.heroTitle,v=>s.heroTitle=v,true)}
+        ${field("메인 설명",s.heroDesc,v=>s.heroDesc=v,true)}
+      </div></div>
+      <div class="ed-card"><div class="ed-head"><h4>사업자 정보 (푸터 표기)</h4></div><div class="grid">
+        ${field("상호명",s.bizName,v=>s.bizName=v)}
+        ${field("대표자명",s.ceo,v=>s.ceo=v)}
+        ${field("사업자등록번호",s.bizNo,v=>s.bizNo=v)}
+        ${field("대표 전화",s.bizPhone,v=>s.bizPhone=v)}
+        ${field("이메일",s.email,v=>s.email=v)}
+        ${field("주소",s.address,v=>s.address=v,true)}
+      </div></div>
+      </div>`);
+
+    /* --- 반복 항목 공통 빌더 --- */
+    function listPanel(key,title,fields,factory){
+      const arr=D[key];
+      let html=`<div class="panel" id="panel-${key}">`;
+      arr.forEach((item,idx)=>{
+        html+=`<div class="ed-card"><div class="ed-head"><h4>${title} ${idx+1}</h4>
+          <button class="del" onclick="removeItem('${key}',${idx})">삭제</button></div><div class="grid">`;
+        fields.forEach(f=>{ html+=field(f.label,item[f.k],null,f.full); });
+        html+=`</div></div>`;
+      });
+      html+=`<button class="addbtn" onclick='addItem("${key}")'>＋ ${title} 추가</button></div>`;
+      root.insertAdjacentHTML("beforeend",html);
+      // 인풋 바인딩
+      const panel=document.getElementById("panel-"+key);
+      const cards=panel.querySelectorAll(".ed-card");
+      cards.forEach((card,idx)=>{
+        card.querySelectorAll("input").forEach((inp,fi)=>{
+          inp.addEventListener("input",e=>{ arr[idx][fields[fi].k]=e.target.value; });
+        });
+      });
+    }
+
+    listPanel("models","기체",[
+      {k:"id",label:"ID(영문)"},{k:"name",label:"이름"},
+      {k:"desc",label:"설명"},{k:"tag",label:"태그"},
+      {k:"icon",label:"아이콘(이모지)"},{k:"image",label:"사진 경로(images/...)",full:true}
+    ]);
+    listPanel("categories","카테고리",[
+      {k:"id",label:"ID"},{k:"name",label:"이름"},
+      {k:"desc",label:"설명"},{k:"icon",label:"아이콘"},
+      {k:"color",label:"배경색(#hex)"},{k:"link",label:"링크",full:true}
+    ]);
+    listPanel("manuals","설명서",[
+      {k:"model",label:"기체명"},{k:"version",label:"버전"},
+      {k:"desc",label:"설명"},{k:"file",label:"PDF 경로(파일명)",full:true}
+    ]);
+    listPanel("symptoms","증상",[
+      {k:"id",label:"ID"},{k:"name",label:"증상명"},{k:"desc",label:"설명",full:true}
+    ]);
+    listPanel("educations","교육영상",[
+      {k:"title",label:"제목"},{k:"emoji",label:"아이콘"},
+      {k:"color",label:"배경색"},{k:"youtube",label:"유튜브 ID/URL",full:true}
+    ]);
+
+    /* --- 비행전 점검(문자열 배열) --- */
+    let ck=`<div class="panel" id="panel-checkItems">`;
+    D.checkItems.forEach((it,i)=>{
+      ck+=`<div class="ed-card"><div class="ed-head"><h4>항목 ${i+1}</h4>
+        <button class="del" onclick="removeCheck(${i})">삭제</button></div>
+        ${field("내용",it,null)}</div>`;
+    });
+    ck+=`<button class="addbtn" onclick="addCheck()">＋ 점검 항목 추가</button></div>`;
+    root.insertAdjacentHTML("beforeend",ck);
+    document.querySelectorAll("#panel-checkItems .ed-card input").forEach((inp,i)=>{
+      inp.addEventListener("input",e=>D.checkItems[i]=e.target.value);
+    });
+  }
+
+  /* ====== 항목 추가/삭제 ====== */
+  const templates={
+    models:{id:"new",name:"새 기체",desc:"",tag:"",icon:"🚁",image:""},
+    categories:{id:"new",name:"새 메뉴",desc:"",icon:"📄",color:"#e8f1ff",link:"#"},
+    manuals:{id:"m",model:"",version:"",file:"",desc:""},
+    symptoms:{id:"new",name:"새 증상",desc:""},
+    educations:{title:"새 영상",emoji:"🎬",color:"#e8f1ff",youtube:""}
+  };
+  function addItem(key){ D[key].push(JSON.parse(JSON.stringify(templates[key]))); renderPanels(); switchTo(key); }
+  function removeItem(key,idx){ D[key].splice(idx,1); renderPanels(); switchTo(key); }
+  function addCheck(){ D.checkItems.push("새 점검 항목"); renderPanels(); switchTo("checkItems"); }
+  function removeCheck(i){ D.checkItems.splice(i,1); renderPanels(); switchTo("checkItems"); }
+  function switchTo(key){
+    document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("on",x.dataset.t===key));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.toggle("on",x.id==="panel-"+key));
+  }
+
+  /* ====== 저장/초기화 ====== */
+  async function doSave(){
+    const btns = document.querySelectorAll(".savebar .btn");
+    btns.forEach(b=>b.disabled=true);
+    const r = await pushContent(D);
+    btns.forEach(b=>b.disabled=false);
+    if(!r.ok){ alert("저장 실패: " + (r.error||"")); return; }
+    if(r.server) alert("서버에 저장되었습니다. 모든 방문자에게 반영됩니다.");
+    else alert("로컬에 저장되었습니다.\n(서버 미연동 또는 토큰 불일치 — 이 브라우저에만 반영됩니다.)");
+  }
+  function doReset(){
+    if(confirm("이 브라우저의 로컬 변경사항을 지우고 기본값으로 되돌립니다.\n(서버 저장값은 서버에서 다시 불러옵니다.) 계속할까요?")){
+      resetData(); location.reload();
+    }
+  }
+
+  /* ====== A/S 접수 목록 ====== */
+  const STATUS_LIST = ["접수","처리중","보류","완료"];
+  const STATUS_COLOR = {"접수":"#1d63d8","처리중":"#e8a317","완료":"#22a06b","보류":"#999"};
+  let SUB_CACHE = [];
+
+  async function loadSubmissions(){
+    const box = document.getElementById("subList");
+    box.innerHTML = '<p style="color:var(--muted)">불러오는 중...</p>';
+    const r = await fetchSubmissions();
+    if(!r.ok){ box.innerHTML = `<p style="color:#e03131">${r.error||"불러오기 실패"}</p>`; return; }
+    const list = r.list || [];
+    SUB_CACHE = list;
+    const src = r.server ? "서버" : "로컬(데모)";
+    if(!list.length){ box.innerHTML = `<p style="color:var(--muted)">접수 내역이 없습니다. (출처: ${src})</p>`; return; }
+
+    // 상태별 건수 요약
+    const counts = STATUS_LIST.map(st=>`${st} ${list.filter(x=>(x.status||'접수')===st).length}`).join(" · ");
+    box.innerHTML =
+      `<p style="color:var(--muted);font-size:13px;margin-bottom:14px">총 ${list.length}건 · 출처: ${src} <span style="margin-left:8px">(${counts})</span></p>` +
+      list.map(s=>{
+        const st = s.status || '접수';
+        const opts = STATUS_LIST.map(o=>`<option ${o===st?'selected':''}>${o}</option>`).join("");
+        // 메모(댓글) 목록: 신규 memos 배열 우선, 없으면 구 memo 1건 표시
+        let memos = Array.isArray(s.memos) ? s.memos.slice() : [];
+        if(!memos.length && typeof s.memo === "string" && s.memo.trim()){
+          memos = [{ id:"m0", text:s.memo.trim(), at:s.createdAt }];
+        }
+        const memoHtml = memos.length
+          ? memos.map(m=>`
+              <div class="memo-item" data-mid="${m.id}">
+                <div class="memo-body">
+                  <span class="memo-text">${esc(m.text)}</span>
+                  <span class="memo-at">${fmt(m.at)}</span>
+                </div>
+                <button class="memo-del" title="메모 삭제">✕</button>
+              </div>`).join("")
+          : `<div class="memo-empty">아직 메모가 없습니다.</div>`;
+        return `
+        <div class="ed-card sub-item" style="margin-bottom:12px" data-id="${s.id}">
+          <div class="ed-head">
+            <h4>${(s.name||'-')} · ${(s.model||'기체 미선택')}
+              <span class="sub-badge" style="background:${STATUS_COLOR[st]||'#1d63d8'}">${st}</span>
+            </h4>
+            <span style="font-size:12px;color:var(--muted)">${fmt(s.createdAt)}</span>
+          </div>
+          <div style="font-size:14px;line-height:1.8">
+            <div>📞 ${s.phone||'-'}</div>
+            <div>🛠 ${s.symptom ? esc(s.symptom) : '<span style="color:#aab">증상 미입력</span>'}</div>
+          </div>
+          <div class="sub-actions">
+            <label>상태
+              <select class="sub-status">${opts}</select>
+            </label>
+            <button class="sub-save">상태 저장</button>
+            <button class="sub-del">삭제</button>
+          </div>
+          <div class="memo-box">
+            <div class="memo-list">${memoHtml}</div>
+            <div class="memo-add">
+              <input class="memo-input" placeholder="처리 메모 입력 (예: 1차 통화 완료)">
+              <button class="memo-send">메모 추가</button>
+            </div>
+          </div>
+        </div>`;
+      }).join("");
+
+    // 이벤트 연결
+    box.querySelectorAll(".sub-item").forEach(card=>{
+      const id = card.dataset.id;
+      // 상태 저장
+      card.querySelector(".sub-save").addEventListener("click", async ()=>{
+        const status = card.querySelector(".sub-status").value;
+        const btn = card.querySelector(".sub-save"); btn.disabled=true; btn.textContent="저장중";
+        const res = await updateSubmission(id, { status });
+        btn.disabled=false; btn.textContent="상태 저장";
+        if(res.ok){ loadSubmissions(); } else { alert("저장 실패: "+(res.error||"")); }
+      });
+      // 접수 삭제
+      card.querySelector(".sub-del").addEventListener("click", async ()=>{
+        if(!confirm("이 접수 내역을 삭제할까요? 되돌릴 수 없습니다.")) return;
+        const res = await deleteSubmission(id);
+        if(res.ok){ loadSubmissions(); } else { alert("삭제 실패: "+(res.error||"")); }
+      });
+      // 메모(댓글) 추가
+      const input = card.querySelector(".memo-input");
+      const send = card.querySelector(".memo-send");
+      async function addMemo(){
+        const text = input.value.trim();
+        if(!text) return;
+        send.disabled=true; send.textContent="추가중";
+        const res = await updateSubmission(id, { addMemo: text });
+        send.disabled=false; send.textContent="메모 추가";
+        if(res.ok){ loadSubmissions(); } else { alert("메모 추가 실패: "+(res.error||"")); }
+      }
+      send.addEventListener("click", addMemo);
+      input.addEventListener("keydown", e=>{ if(e.key==="Enter") addMemo(); });
+      // 메모 삭제
+      card.querySelectorAll(".memo-del").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const mid = btn.closest(".memo-item").dataset.mid;
+          if(!confirm("이 메모를 삭제할까요?")) return;
+          const res = await updateSubmission(id, { deleteMemoId: mid });
+          if(res.ok){ loadSubmissions(); } else { alert("메모 삭제 실패: "+(res.error||"")); }
+        });
+      });
+    });
+  }
+  function fmt(iso){ try{ return new Date(iso).toLocaleString('ko-KR'); }catch{ return iso||''; } }
+  function esc(s){ return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c])); }
+</script>
+</body>
+</html>

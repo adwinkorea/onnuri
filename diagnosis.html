@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>고장진단 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › 고장진단</div>
+    <h1>🩺 고장진단</h1>
+    <p>겪고 있는 증상을 선택하면 단계별로 진단하고 해결 방법을 안내합니다.</p>
+  </div>
+</div>
+<section class="block">
+  <div class="wrap feature-split">
+    <div>
+      <span class="eyebrow">증상 선택</span>
+      <h2 class="sec-title" style="margin-bottom:20px">어떤 증상인가요?</h2>
+      <div class="list-card" id="symptomList"></div>
+    </div>
+    <div class="diag-card">
+      <div class="steps">
+        <div class="step-dot on"></div><div class="step-dot"></div>
+        <div class="step-dot"></div><div class="step-dot"></div>
+      </div>
+      <h4 id="diagQ">1. RTK LED 상태는 어떤가요?</h4>
+      <div id="diagOpts">
+        <div class="opt"><span class="r"></span>녹색 점등</div>
+        <div class="opt sel"><span class="r"></span>빨간색 점등</div>
+        <div class="opt"><span class="r"></span>깜빡임</div>
+        <div class="opt"><span class="r"></span>아예 안 들어옴</div>
+      </div>
+      <button class="btn btn-blue" style="width:100%;justify-content:center;margin-top:8px">다음 단계 →</button>
+      <a class="btn" href="as.html" style="width:100%;justify-content:center;margin-top:10px;background:var(--blue-soft);color:var(--blue-dark)">해결 안 되면 A/S 접수</a>
+    </div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome("diag");
+  bootContent(function(){
+
+  document.getElementById("symptomList").innerHTML = DATA.symptoms.map((s,i)=>`
+    <div class="list-row" data-id="${s.id}">
+      <div class="num">${i+1}</div>
+      <div class="body"><h4>${s.name}</h4><p>${s.desc}</p></div>
+      <div class="arrow">›</div>
+    </div>`).join("");
+
+  // 진단 옵션 선택
+  function wireOpts(){
+    document.querySelectorAll("#diagOpts .opt").forEach(o=>{
+      o.addEventListener("click",()=>{
+        document.querySelectorAll("#diagOpts .opt").forEach(x=>x.classList.remove("sel"));
+        o.classList.add("sel");
+      });
+    });
+  }
+  wireOpts();
+
+  // 증상 선택 시 질문 변경 (예시)
+  const questions = {
+    rtk:["1. RTK LED 상태는 어떤가요?",["녹색 점등","빨간색 점등","깜빡임","아예 안 들어옴"]],
+    pump:["1. 펌프에서 소리가 나나요?",["정상 작동음","소리 없음","이상한 소음","약제만 안 나옴"]],
+    motor:["1. 모터 증상은?",["진동 발생","소음 발생","회전 안 됨","간헐적 정지"]],
+    rc:["1. 조종기 연결 상태는?",["연결 끊김 반복","아예 연결 안 됨","지연 발생","페어링 실패"]],
+    spray:["1. 살포 상태는?",["과다 분사","분사량 부족","불규칙","한쪽만 분사"]],
+    charge:["1. 충전 상태는?",["충전 안 됨","충전 느림","과열","완충 표시 후 방전"]]
+  };
+  document.querySelectorAll("#symptomList .list-row").forEach(r=>{
+    r.addEventListener("click",()=>{
+      const id=r.dataset.id, q=questions[id];
+      if(!q) return;
+      document.getElementById("diagQ").textContent=q[0];
+      document.getElementById("diagOpts").innerHTML=q[1].map((o,i)=>
+        `<div class="opt ${i===0?'sel':''}"><span class="r"></span>${o}</div>`).join("");
+      wireOpts();
+      document.querySelectorAll("#symptomList .list-row").forEach(x=>x.style.background="");
+      r.style.background="var(--blue-soft)";
+    });
+  });
+
+  });
+</script>
+</body>
+</html>

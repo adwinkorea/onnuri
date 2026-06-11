@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <h1 id="heroTitle"></h1>
+      <p class="sub" id="heroDesc"></p>
+      <div class="hero-cta">
+        <a href="#cats" class="btn btn-primary">정보 둘러보기</a>
+        <a href="as.html" class="btn btn-ghost">A/S 접수하기</a>
+      </div>
+    </div>
+    <div class="hero-art" id="heroArt"><div class="drone">🚁</div></div>
+  </div>
+  <div class="field-strip"></div>
+</section>
+
+<!-- Quick card -->
+<div class="wrap quick">
+  <div class="quick-card">
+    <!-- QR 코드 -->
+    <!--
+    <div class="qr-box">
+      <div class="qr" id="qr"></div>
+      <div class="txt"><strong>QR코드로 접속</strong><span>찍고 바로 모바일에서 확인</span></div>
+    </div>
+    <div class="quick-divider"></div>
+    -->
+    <div class="quick-feats">
+      <div class="feat"><span class="ic">🌐</span> 인터넷만 되면 어디서나</div>
+      <div class="feat"><span class="ic">📲</span> 앱 설치 없이 바로 접속</div>
+      <div class="feat"><span class="ic">⚡</span> 모바일 최적화 쉬운 사용</div>
+    </div>
+    <div class="quick-call">
+      <small id="callSub"></small>
+      <b id="callNum"></b>
+    </div>
+  </div>
+</div>
+
+<!-- 기체 선택 (독립 페이지로 이동) -->
+<section class="block">
+  <div class="wrap">
+    <div class="sec-head center">
+      <span class="eyebrow"><!-- STEP 1 · 기체 선택 --> 기체 선택</span>
+      <h2 class="sec-title">보유하신 드론을 선택하세요</h2>
+      <p class="sec-desc">기체에 맞는 설명서와 점검 항목, 정비 정보를 안내해 드립니다.</p>
+    </div>
+    <a href="models.html" class="model-cta">
+      <div class="model-cta-icons" id="ctaIcons"></div>
+      <div class="model-cta-text">
+        <strong>기체 선택 페이지 열기</strong>
+        <span id="ctaCount">등록된 기체를 한눈에 보고 선택하세요</span>
+      </div>
+      <span class="model-cta-arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<!-- 카테고리 -->
+<section class="block" id="cats" style="background:#fff">
+  <div class="wrap">
+    <div class="sec-head center">
+      <span class="eyebrow"><!-- STEP 2 · 정보 선택 --> 정보 선택</span>
+      <h2 class="sec-title">무엇을 찾고 계신가요?</h2>
+      <p class="sec-desc">필요한 항목을 선택하면 관련 페이지로 이동합니다.</p>
+    </div>
+    <div class="cats" id="catGrid"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome("home");
+  // renderQR("qr"); // QR 코드 비활성화 (다시 쓰려면 위 HTML 주석 해제 후 이 줄도 해제)
+
+  bootContent(function(){
+  // 사이트 텍스트
+  document.getElementById("heroTitle").innerHTML =
+    DATA.site.heroTitle.replace(/지식센터/, '<br>지식센터');
+  document.getElementById("heroDesc").textContent = DATA.site.heroDesc;
+  document.getElementById("callSub").textContent = "고객센터 · " + DATA.site.hours;
+  document.getElementById("callNum").textContent = DATA.site.phone;
+
+  // 히어로 이미지
+  if(DATA.site.heroImage){
+    document.getElementById("heroArt").innerHTML =
+      `<img src="${DATA.site.heroImage}" alt="드론" onerror="this.parentNode.innerHTML='<div class=&quot;drone&quot;>🚁</div>'">`;
+  }
+
+  // 기체 선택 진입 배너 (아이콘 미리보기 + 개수)
+  const icons = DATA.models.slice(0,5).map(m=>
+    `<span class="cta-ic">${m.image?`<img src="${m.image}" alt="" onerror="this.parentNode.innerHTML='${m.icon}'">`:m.icon}</span>`).join("");
+  document.getElementById("ctaIcons").innerHTML = icons;
+  document.getElementById("ctaCount").textContent =
+    `${DATA.models.length}종 기체 등록됨 · 한눈에 보고 선택하세요`;
+
+  // 카테고리 카드
+  document.getElementById("catGrid").innerHTML = DATA.categories.map(c=>`
+    <a class="cat" href="${c.link}">
+      <div class="badge" style="background:${c.color}">${c.icon}</div>
+      <h4>${c.name}</h4>
+      <p>${c.desc}</p>
+    </a>`).join("");
+  });
+</script>
+</body>
+</html>

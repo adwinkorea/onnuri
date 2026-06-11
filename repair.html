@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>정비방법 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › 정비방법</div>
+    <h1>🔧 정비방법</h1>
+    <p>주기별 점검과 부품교체, 계절 보관 방법을 안내합니다.</p>
+  </div>
+</div>
+<section class="block">
+  <div class="wrap" style="max-width:760px">
+    <div class="list-card" id="repairList"></div>
+  </div>
+</section>
+<div id="site-footer"></div>
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome();
+  bootContent(function(){
+
+  document.getElementById("repairList").innerHTML = DATA.repairItems.map((r,i)=>`
+    <div class="list-row">
+      <div class="num">${i+1}</div>
+      <div class="body"><h4>${r.title}</h4><p>${r.desc}</p></div>
+      <div class="arrow">›</div>
+    </div>`).join("");
+
+  });
+</script>
+</body>
+</html>

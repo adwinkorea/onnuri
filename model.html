@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>기체 정보 · 온누리 드론 지식센터</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+
+<div class="page-head">
+  <div class="wrap">
+    <div class="crumb"><a href="index.html">홈</a> › <a href="models.html">기체선택</a> › <span id="cbName"></span></div>
+    <h1 id="modelName"></h1>
+    <p id="modelDesc"></p>
+  </div>
+</div>
+
+<section class="block">
+  <div class="wrap">
+    <div class="hero-art" id="modelImage" style="min-height:240px;margin-bottom:30px"></div>
+
+    <div class="other-models" id="otherModels"></div>
+  </div>
+</section>
+
+<div id="site-footer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/api.js"></script>
+<script src="js/common.js"></script>
+<script>
+  mountChrome("models");
+  bootContent(function(){
+
+
+  const id = new URLSearchParams(location.search).get("id") || DATA.models[0].id;
+  const m = DATA.models.find(x=>x.id===id) || DATA.models[0];
+
+  document.getElementById("cbName").textContent = m.name;
+  document.getElementById("modelName").textContent = m.name;
+  document.getElementById("modelDesc").textContent = m.desc;
+  document.getElementById("modelImage").innerHTML =
+    m.image ? `<img src="${m.image}" alt="${m.name}" style="border-radius:20px;max-height:240px" onerror="this.parentNode.innerHTML='<div class=&quot;drone&quot;>${m.icon}</div>'">`
+            : `<div class="drone">${m.icon}</div>`;
+
+  // 다른 기체 (현재 기체 제외, 작게 표시)
+  const others = DATA.models.filter(x => x.id !== m.id);
+  const box = document.getElementById("otherModels");
+  if(others.length){
+    box.innerHTML =
+      `<h3 class="other-title">다른 기체 보기</h3>
+       <div class="other-grid">` +
+      others.map(o=>`
+        <a class="other-card" href="model.html?id=${o.id}">
+          <div class="other-thumb">${o.image?`<img src="${o.image}" alt="${o.name}" onerror="this.parentNode.innerHTML='${o.icon}'">`:o.icon}</div>
+          <div class="other-info">
+            <strong>${o.name}</strong>
+            <span>${o.desc}</span>
+          </div>
+        </a>`).join("") +
+      `</div>`;
+  }
+
+  });
+</script>
+</body>
+</html>
