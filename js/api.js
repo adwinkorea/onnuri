@@ -7,7 +7,10 @@
    ===================================================================== */
 
 const API_BASE = ""; // 같은 도메인의 /api 사용. 다른 도메인이면 "https://..." 지정
-
+/* ── Supabase 연결 ── */
+const SUPABASE_URL = 'https://mlfguelaobivcupfxnwh.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1sZmd1ZWxhb2JpdmN1cGZ4bndoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3NDY1MDQsImV4cCI6MjA5NzMyMjUwNH0.qymgP1z5ZAv6-b8PLkuFSVYg76feBu9Bh8Mmq5C5R8M';
+const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 // 관리자 토큰: 로그인 시 sessionStorage에 보관 (서버 ADMIN_TOKEN과 일치해야 저장 권한)
 function getAdminToken(){ return sessionStorage.getItem("onnuri_admin_token") || ""; }
 function setAdminToken(t){ sessionStorage.setItem("onnuri_admin_token", t); }
@@ -46,26 +49,21 @@ async function pushContent(data){
   }
 }
 
-/* ── A/S 접수 전송: 서버 우선, 실패 시 로컬 보관 ── */
+/* ── A/S 접수 전송: Supabase 저장, 실패 시 로컬 보관 ── */
 async function submitAS(payload){
   try{
-    const r = await fetch(`${API_BASE}/api/submissions`, {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    const j = await r.json().catch(()=>null);
-    if(r.ok && j && j.ok) return { ok:true, server:true, emailed:j.emailed };
-    // 서버가 응답했지만 정상 JSON이면 그 에러를 보여줌
-    if(j && j.error) return { ok:false, error:j.error };
-    // API가 없는 정적 호스팅(501/404 등) → 로컬 폴백
-    return localFallback(payload);
+    const { error } = await db.from('as_requests').insert([{
+      name: payload.name,
+      phone: payload.phone,
+      drone_model: payload.model,
+      content: payload.symptom
+    }]);
+    if(error) throw error;
+    return { ok:true, server:true };
   }catch(e){
-    return localFallback(payload);
-  }
-  function localFallback(p){
+    // Supabase 실패 시 기존 로컬 폴백 유지
     const list = JSON.parse(localStorage.getItem("onnuri_as_local")||"[]");
-    list.unshift({ ...p, id:Date.now().toString(36), createdAt:new Date().toISOString(), status:"접수(로컬)" });
+    list.unshift({ ...payload, id:Date.now().toString(36), createdAt:new Date().toISOString(), status:"접수(로컬)" });
     localStorage.setItem("onnuri_as_local", JSON.stringify(list));
     return { ok:true, server:false };
   }
@@ -74,73 +72,72 @@ async function submitAS(payload){
 /* ── A/S 접수 목록 조회 (관리자) ── */
 async function fetchSubmissions(){
   try{
-    const r = await fetch(`${API_BASE}/api/submissions`, {
-      headers:{ "x-admin-token": getAdminToken() }, cache:"no-store"
-    });
-    if(r.ok){ const j = await r.json(); if(j.ok) return { ok:true, server:true, list:j.data }; }
-    if(r.status===401) return { ok:false, error:"서버 관리자 인증 실패" };
-  }catch(e){ /* 폴백 */ }
-  // 서버 없음 → 로컬 데모 목록
-  const list = JSON.parse(localStorage.getItem("onnuri_as_local")||"[]");
-  return { ok:true, server:false, list };
+    const { data, error } = await db
+      .from('as_requests')
+      .select('*')
+      .order('created_at', { ascending:false });
+    if(error) throw error;
+    // 화면(admin.html)이 기대하는 이름으로 변환
+    const list = (data||[]).map(row=>({
+      id: row.id,
+      name: row.name,
+      phone: row.phone,
+      model: row.drone_model,
+      symptom: row.content,
+      status: row.status || "접수",
+      createdAt: row.created_at,
+      memos: Array.isArray(row.memos) ? row.memos : []
+    }));
+    return { ok:true, server:true, list };
+  }catch(e){
+    return { ok:false, error:"목록을 불러오지 못했습니다: " + (e.message||e) };
+  }
 }
 
 /* ── A/S 접수 상태/메모 변경 (관리자) ── */
 async function updateSubmission(id, patch){
   try{
-    const r = await fetch(`${API_BASE}/api/submissions`, {
-      method:"PATCH",
-      headers:{ "Content-Type":"application/json", "x-admin-token": getAdminToken() },
-      body: JSON.stringify({ id, ...patch })
-    });
-    const j = await r.json().catch(()=>null);
-    if(r.ok && j && j.ok) return { ok:true, server:true };
-    if(r.status===401) return { ok:false, error:"서버 관리자 인증 실패" };
-    if(j && j.error) return localPatch(id, patch);
-    return localPatch(id, patch);
-  }catch(e){ return localPatch(id, patch); }
-  function localPatch(id, patch){
-    const list = JSON.parse(localStorage.getItem("onnuri_as_local")||"[]");
-    const it = list.find(x=>x.id===id);
-    if(it){
-      if(typeof patch.status === "string") it.status = patch.status;
-      // 단일 memo → 댓글 배열 이관 (하위호환)
-      if(!Array.isArray(it.memos)){
-        it.memos = [];
-        if(typeof it.memo === "string" && it.memo.trim()){
-          it.memos.push({ id:"m0", text:it.memo.trim(), at:it.createdAt||new Date().toISOString() });
-        }
-        delete it.memo;
-      }
+    // 메모 추가/삭제는 현재 memos 배열을 읽어와서 수정 후 다시 저장
+    if(patch.addMemo !== undefined || patch.deleteMemoId !== undefined){
+      const { data: cur, error: e1 } = await db
+        .from('as_requests').select('memos').eq('id', id).single();
+      if(e1) throw e1;
+      let memos = Array.isArray(cur.memos) ? cur.memos : [];
+
       if(typeof patch.addMemo === "string" && patch.addMemo.trim()){
-        it.memos.push({ id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), text:patch.addMemo.trim(), at:new Date().toISOString() });
+        memos.push({
+          id: Date.now().toString(36) + Math.random().toString(36).slice(2,5),
+          text: patch.addMemo.trim(),
+          at: new Date().toISOString()
+        });
       }
       if(typeof patch.deleteMemoId === "string" && patch.deleteMemoId){
-        it.memos = it.memos.filter(m=>m.id!==patch.deleteMemoId);
+        memos = memos.filter(m => m.id !== patch.deleteMemoId);
       }
-      localStorage.setItem("onnuri_as_local", JSON.stringify(list));
+
+      const { error: e2 } = await db.from('as_requests').update({ memos }).eq('id', id);
+      if(e2) throw e2;
+      return { ok:true, server:true };
     }
-    return { ok:true, server:false };
+
+    // 상태 변경
+    const fields = {};
+    if(typeof patch.status === "string") fields.status = patch.status;
+    const { error } = await db.from('as_requests').update(fields).eq('id', id);
+    if(error) throw error;
+    return { ok:true, server:true };
+  }catch(e){
+    return { ok:false, error:(e.message||e) };
   }
 }
 
 /* ── A/S 접수 삭제 (관리자) ── */
 async function deleteSubmission(id){
   try{
-    const r = await fetch(`${API_BASE}/api/submissions`, {
-      method:"DELETE",
-      headers:{ "Content-Type":"application/json", "x-admin-token": getAdminToken() },
-      body: JSON.stringify({ id })
-    });
-    const j = await r.json().catch(()=>null);
-    if(r.ok && j && j.ok) return { ok:true, server:true };
-    if(r.status===401) return { ok:false, error:"서버 관리자 인증 실패" };
-    return localDel(id);
-  }catch(e){ return localDel(id); }
-  function localDel(id){
-    let list = JSON.parse(localStorage.getItem("onnuri_as_local")||"[]");
-    list = list.filter(x=>x.id!==id);
-    localStorage.setItem("onnuri_as_local", JSON.stringify(list));
-    return { ok:true, server:false };
+    const { error } = await db.from('as_requests').delete().eq('id', id);
+    if(error) throw error;
+    return { ok:true, server:true };
+  }catch(e){
+    return { ok:false, error:(e.message||e) };
   }
 }
